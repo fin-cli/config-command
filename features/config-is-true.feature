@@ -1,83 +1,83 @@
-Feature: Determine whether the value of a constant or variable defined in wp-config.php is true.
+Feature: Determine whether the value of a constant or variable defined in fp-config.php is true.
   Background:
     Given an empty directory
-    And a wp-includes/version.php file:
+    And a fp-includes/version.php file:
       """
       <?php
-      $wp_version = '6.3';
+      $fp_version = '6.3';
       """
-    And a wp-config.php file:
+    And a fp-config.php file:
       """
       <?php
       /* Truth tests. */
-      define( 'WP_TRUTH', true );
-      define( 'WP_STR_TRUTH', 'true' );
-      define( 'WP_STR_MISC', 'foobar' );
-      define( 'WP_STR_FALSE', 'false' );
-      $wp_str_var_truth = 'true';
-      $wp_str_var_false = 'false';
-      $wp_str_var_misc = 'foobar';
+      define( 'FP_TRUTH', true );
+      define( 'FP_STR_TRUTH', 'true' );
+      define( 'FP_STR_MISC', 'foobar' );
+      define( 'FP_STR_FALSE', 'false' );
+      $fp_str_var_truth = 'true';
+      $fp_str_var_false = 'false';
+      $fp_str_var_misc = 'foobar';
 
       /* False tests. */
-      define( 'WP_FALSE', false );
-      define( 'WP_STR_ZERO', '0' );
-      define( 'WP_NUM_ZERO', 0 );
-      $wp_variable_bool_false = false;
+      define( 'FP_FALSE', false );
+      define( 'FP_STR_ZERO', '0' );
+      define( 'FP_NUM_ZERO', 0 );
+      $fp_variable_bool_false = false;
 
-      require_once ABSPATH . 'wp-settings.php';
+      require_once ABSPATH . 'fp-settings.php';
       require_once ABSPATH . 'includes-file.php';
       """
     And a includes-file.php file:
       """
       <?php
-      define( 'WP_INC_TRUTH', true );
-      define( 'WP_INC_FALSE', false );
+      define( 'FP_INC_TRUTH', true );
+      define( 'FP_INC_FALSE', false );
       """
 
   Scenario Outline: Get the value of a variable whose value is true
-    When I try `wp config is-true <variable>`
+    When I try `fp config is-true <variable>`
     Then STDOUT should be empty
     And STDERR should be empty
     And the return code should be 0
 
     Examples:
       | variable          |
-      | WP_TRUTH          |
-      | WP_STR_TRUTH      |
-      | WP_STR_MISC       |
-      | WP_STR_FALSE      |
-      | wp_str_var_truth  |
-      | wp_str_var_false  |
-      | wp_str_var_misc   |
+      | FP_TRUTH          |
+      | FP_STR_TRUTH      |
+      | FP_STR_MISC       |
+      | FP_STR_FALSE      |
+      | fp_str_var_truth  |
+      | fp_str_var_false  |
+      | fp_str_var_misc   |
 
   Scenario Outline: Get the value of a variable whose value is not true
-    When I try `wp config is-true <variable>`
+    When I try `fp config is-true <variable>`
     Then STDOUT should be empty
     And the return code should be 1
 
     Examples:
       | variable               |
-      | WP_FALSE               |
-      | WP_STRZERO             |
-      | WP_NUMZERO             |
-      | wp_variable_bool_false |
+      | FP_FALSE               |
+      | FP_STRZERO             |
+      | FP_NUMZERO             |
+      | fp_variable_bool_false |
 
   Scenario Outline: Test for values which do not exist
-    When I try `wp config is-true <variable> --type=<type>`
+    When I try `fp config is-true <variable> --type=<type>`
     Then STDOUT should be empty
     And the return code should be 1
 
     Examples:
       | variable             | type     |
-      | WP_TEST_CONSTANT_DNE | all      |
-      | wp_test_variable_dne | variable |
+      | FP_TEST_CONSTANT_DNE | all      |
+      | fp_test_variable_dne | variable |
 
   Scenario: Test for correct functionality with included PHP files.
-    When I try `wp config is-true WP_INC_TRUTH`
+    When I try `fp config is-true FP_INC_TRUTH`
     Then STDOUT should be empty
     And STDERR should be empty
     And the return code should be 0
 
-    When I try `wp config is-true WP_INC_FALSE`
+    When I try `fp config is-true FP_INC_FALSE`
     Then STDOUT should be empty
     And the return code should be 1

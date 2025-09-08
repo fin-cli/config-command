@@ -1,34 +1,34 @@
 Feature: Backwards compatibility
 
-  Scenario: wp config get --constant=<constant> --> wp config get <name> --type=constant
-    Given a WP install
+  Scenario: fp config get --constant=<constant> --> fp config get <name> --type=constant
+    Given a FP install
 
-    When I run `wp config get --constant=DB_NAME`
+    When I run `fp config get --constant=DB_NAME`
     Then STDOUT should be:
       """
-      wp_cli_test
+      fp_cli_test
       """
 
-  Scenario: wp config get --global=<global> --> wp config get <name> --type=variable
-    Given a WP install
+  Scenario: fp config get --global=<global> --> fp config get <name> --type=variable
+    Given a FP install
 
-    When I run `wp config get --global=table_prefix`
+    When I run `fp config get --global=table_prefix`
     Then STDOUT should be:
       """
-      wp_
+      fp_
       """
 
-  Scenario: wp config get --> wp config list
+  Scenario: fp config get --> fp config list
     Given an empty directory
-    And WP files
+    And FP files
 
-    When I run `wp config create {CORE_CONFIG_SETTINGS} --skip-check`
+    When I run `fp config create {CORE_CONFIG_SETTINGS} --skip-check`
     Then STDOUT should contain:
       """
-      Generated 'wp-config.php' file.
+      Generated 'fp-config.php' file.
       """
 
-    When I run `wp config get --fields=name,type`
+    When I run `fp config get --fields=name,type`
     Then STDOUT should be a table containing rows:
       | name               | type     |
       | DB_NAME            | constant |
@@ -36,6 +36,6 @@ Feature: Backwards compatibility
       | DB_PASSWORD        | constant |
       | DB_HOST            | constant |
 
-    When I try `wp config get`
+    When I try `fp config get`
     Then STDOUT should be a table containing rows:
       | name | value | type |

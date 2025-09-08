@@ -4,14 +4,14 @@ parameters:
     - src
     - config-command.php
   scanDirectories:
-    - vendor/wp-cli/wp-cli/php
+    - vendor/fp-cli/fp-cli/php
   scanFiles:
-    - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+    - vendor/php-stubs/finpress-stubs/finpress-stubs.php
   treatPhpDocTypesAsCertain: false
   dynamicConstantNames:
-  	- WP_DEBUG
-  	- WP_DEBUG_LOG
-  	- WP_DEBUG_DISPLAY
+  	- FP_DEBUG
+  	- FP_DEBUG_LOG
+  	- FP_DEBUG_DISPLAY
   ignoreErrors:
     - identifier: missingType.iterableValue
     - identifier: missingType.parameter

@@ -1,9 +1,9 @@
-Feature: List the values of a wp-config.php file
+Feature: List the values of a fp-config.php file
 
-  Scenario: List constants, variables and files included from wp-config.php
+  Scenario: List constants, variables and files included from fp-config.php
     Given an empty directory
-    And WP files
-    And a wp-config-extra.php file:
+    And FP files
+    And a fp-config-extra.php file:
       """
       require_once 'custom-include.php';
       """
@@ -12,13 +12,13 @@ Feature: List the values of a wp-config.php file
       <?php // This won't work without this file being empty. ?>
       """
 
-    When I run `wp config create {CORE_CONFIG_SETTINGS} --skip-check --extra-php < wp-config-extra.php`
+    When I run `fp config create {CORE_CONFIG_SETTINGS} --skip-check --extra-php < fp-config-extra.php`
     Then STDOUT should contain:
       """
-      Generated 'wp-config.php' file.
+      Generated 'fp-config.php' file.
       """
 
-    When I run `wp config list --fields=name,type`
+    When I run `fp config list --fields=name,type`
     Then STDOUT should be a table containing rows:
       | name               | type     |
       | DB_NAME            | constant |
@@ -27,14 +27,14 @@ Feature: List the values of a wp-config.php file
       | DB_HOST            | constant |
       | custom-include.php | includes |
 
-    When I try `wp config list`
+    When I try `fp config list`
     Then STDOUT should be a table containing rows:
       | name | value | type |
 
-  Scenario: List constants, variables and files included from wp-custom-config.php
+  Scenario: List constants, variables and files included from fp-custom-config.php
     Given an empty directory
-    And WP files
-    And a wp-config-extra.php file:
+    And FP files
+    And a fp-config-extra.php file:
       """
       require_once 'custom-include.php';
       """
@@ -43,13 +43,13 @@ Feature: List the values of a wp-config.php file
       <?php // This won't work without this file being empty. ?>
       """
 
-    When I run `wp config create {CORE_CONFIG_SETTINGS} --skip-check --config-file='wp-custom-config.php' --extra-php < wp-config-extra.php`
+    When I run `fp config create {CORE_CONFIG_SETTINGS} --skip-check --config-file='fp-custom-config.php' --extra-php < fp-config-extra.php`
     Then STDOUT should contain:
       """
-      Generated 'wp-custom-config.php' file.
+      Generated 'fp-custom-config.php' file.
       """
 
-    When I run `wp config list --fields=name,type --config-file='wp-custom-config.php'`
+    When I run `fp config list --fields=name,type --config-file='fp-custom-config.php'`
     Then STDOUT should be a table containing rows:
       | name               | type     |
       | DB_NAME            | constant |
@@ -58,21 +58,21 @@ Feature: List the values of a wp-config.php file
       | DB_HOST            | constant |
       | custom-include.php | includes |
 
-    When I try `wp config list --config-file='wp-custom-config.php'`
+    When I try `fp config list --config-file='fp-custom-config.php'`
     Then STDOUT should be a table containing rows:
       | name | value | type |
 
-  Scenario: Filter the list of values of a wp-config.php file
+  Scenario: Filter the list of values of a fp-config.php file
     Given an empty directory
-    And WP files
+    And FP files
 
-    When I run `wp config create {CORE_CONFIG_SETTINGS} --skip-check`
+    When I run `fp config create {CORE_CONFIG_SETTINGS} --skip-check`
     Then STDOUT should contain:
       """
-      Generated 'wp-config.php' file.
+      Generated 'fp-config.php' file.
       """
 
-    When I run `wp config list --fields=name`
+    When I run `fp config list --fields=name`
     Then STDOUT should be a table containing rows:
       | name             |
       | table_prefix     |
@@ -91,7 +91,7 @@ Feature: List the values of a wp-config.php file
       | LOGGED_IN_SALT   |
       | NONCE_SALT       |
 
-    When I run `wp config list --fields=name DB_`
+    When I run `fp config list --fields=name DB_`
     Then STDOUT should be a table containing rows:
       | name        |
       | DB_NAME     |
@@ -109,7 +109,7 @@ Feature: List the values of a wp-config.php file
       AUTH_KEY
       """
 
-    When I run `wp config list --fields=name DB_HOST`
+    When I run `fp config list --fields=name DB_HOST`
     Then STDOUT should be a table containing rows:
       | name    |
       | DB_HOST |
@@ -126,19 +126,19 @@ Feature: List the values of a wp-config.php file
       DB_NAME
       """
 
-    When I try `wp config list --fields=name --strict`
+    When I try `fp config list --fields=name --strict`
     Then STDERR should be:
       """
       Error: The --strict option can only be used in combination with a filter.
       """
 
-    When I try `wp config list --fields=name DB_ --strict`
+    When I try `fp config list --fields=name DB_ --strict`
     Then STDERR should be:
       """
-      Error: No matching entries found in 'wp-config.php'.
+      Error: No matching entries found in 'fp-config.php'.
       """
 
-    When I run `wp config list --fields=name DB_USER DB_PASSWORD`
+    When I run `fp config list --fields=name DB_USER DB_PASSWORD`
     Then STDOUT should be a table containing rows:
       | name        |
       | DB_USER     |
@@ -156,7 +156,7 @@ Feature: List the values of a wp-config.php file
       DB_HOST
       """
 
-    When I run `wp config list --fields=name DB_USER DB_PASSWORD --strict`
+    When I run `fp config list --fields=name DB_USER DB_PASSWORD --strict`
     Then STDOUT should be a table containing rows:
       | name        |
       | DB_USER     |
@@ -174,7 +174,7 @@ Feature: List the values of a wp-config.php file
       DB_HOST
       """
 
-    When I run `wp config list --fields=name _KEY _SALT`
+    When I run `fp config list --fields=name _KEY _SALT`
     Then STDOUT should be a table containing rows:
       | name             |
       | AUTH_KEY         |
@@ -194,17 +194,17 @@ Feature: List the values of a wp-config.php file
       DB_HOST
       """
 
-  Scenario: Filter the list of values of a wp-custom-config.php file
+  Scenario: Filter the list of values of a fp-custom-config.php file
     Given an empty directory
-    And WP files
+    And FP files
 
-    When I run `wp config create {CORE_CONFIG_SETTINGS} --skip-check --config-file='wp-custom-config.php'`
+    When I run `fp config create {CORE_CONFIG_SETTINGS} --skip-check --config-file='fp-custom-config.php'`
     Then STDOUT should contain:
       """
-      Generated 'wp-custom-config.php' file.
+      Generated 'fp-custom-config.php' file.
       """
 
-    When I run `wp config list --fields=name --config-file='wp-custom-config.php'`
+    When I run `fp config list --fields=name --config-file='fp-custom-config.php'`
     Then STDOUT should be a table containing rows:
       | name             |
       | table_prefix     |
@@ -223,7 +223,7 @@ Feature: List the values of a wp-config.php file
       | LOGGED_IN_SALT   |
       | NONCE_SALT       |
 
-    When I run `wp config list --fields=name DB_ --config-file='wp-custom-config.php'`
+    When I run `fp config list --fields=name DB_ --config-file='fp-custom-config.php'`
     Then STDOUT should be a table containing rows:
       | name        |
       | DB_NAME     |
@@ -241,7 +241,7 @@ Feature: List the values of a wp-config.php file
       AUTH_KEY
       """
 
-    When I run `wp config list --fields=name DB_HOST --config-file='wp-custom-config.php'`
+    When I run `fp config list --fields=name DB_HOST --config-file='fp-custom-config.php'`
     Then STDOUT should be a table containing rows:
       | name    |
       | DB_HOST |
@@ -258,19 +258,19 @@ Feature: List the values of a wp-config.php file
       DB_NAME
       """
 
-    When I try `wp config list --fields=name --strict --config-file='wp-custom-config.php'`
+    When I try `fp config list --fields=name --strict --config-file='fp-custom-config.php'`
     Then STDERR should be:
       """
       Error: The --strict option can only be used in combination with a filter.
       """
 
-    When I try `wp config list --fields=name DB_ --strict --config-file='wp-custom-config.php'`
+    When I try `fp config list --fields=name DB_ --strict --config-file='fp-custom-config.php'`
     Then STDERR should be:
       """
-      Error: No matching entries found in 'wp-custom-config.php'.
+      Error: No matching entries found in 'fp-custom-config.php'.
       """
 
-    When I run `wp config list --fields=name DB_USER DB_PASSWORD --config-file='wp-custom-config.php'`
+    When I run `fp config list --fields=name DB_USER DB_PASSWORD --config-file='fp-custom-config.php'`
     Then STDOUT should be a table containing rows:
       | name        |
       | DB_USER     |
@@ -288,7 +288,7 @@ Feature: List the values of a wp-config.php file
       DB_HOST
       """
 
-    When I run `wp config list --fields=name DB_USER DB_PASSWORD --strict --config-file='wp-custom-config.php'`
+    When I run `fp config list --fields=name DB_USER DB_PASSWORD --strict --config-file='fp-custom-config.php'`
     Then STDOUT should be a table containing rows:
       | name        |
       | DB_USER     |
@@ -306,7 +306,7 @@ Feature: List the values of a wp-config.php file
       DB_HOST
       """
 
-    When I run `wp config list --fields=name _KEY _SALT --config-file='wp-custom-config.php'`
+    When I run `fp config list --fields=name _KEY _SALT --config-file='fp-custom-config.php'`
     Then STDOUT should be a table containing rows:
       | name             |
       | AUTH_KEY         |
@@ -328,12 +328,12 @@ Feature: List the values of a wp-config.php file
 
   Scenario: Configuration can be formatted for dotenv files
     Given an empty directory
-    And WP files
-    And a wp-config.php file:
+    And FP files
+    And a fp-config.php file:
       """
       <?php
-      define( 'DB_NAME', 'wp_cli_test' );
-      define( 'DB_USER', 'wp_cli_test' );
+      define( 'DB_NAME', 'fp_cli_test' );
+      define( 'DB_USER', 'fp_cli_test' );
       define( 'DB_PASSWORD', 'password1' );
       define( 'DB_HOST', '127.0.0.1:33068' );
       define( 'DB_CHARSET', 'utf8' );
@@ -348,9 +348,9 @@ Feature: List the values of a wp-config.php file
       define('LOGGED_IN_SALT',   'Iwtez|Q`M l7lup; x&ml8^C|Lk&X[3/-l!$`P3GM$7:WI&X$Hn)unjZ9u~g4m[c');
       define('NONCE_SALT',       'QxcY|80 $f_dRkn*Liu|Ak*aas41g(q5X_h+m8Z$)tf6#TZ+Q,D#%n]g -{=mj1)');
 
-      $table_prefix = 'wp_';
+      $table_prefix = 'fp_';
 
-      define( 'WP_ALLOW_MULTISITE', true );
+      define( 'FP_ALLOW_MULTISITE', true );
       define( 'MULTISITE', true );
       define( 'SUBDOMAIN_INSTALL', false );
       $base = '/';
@@ -365,10 +365,10 @@ Feature: List the values of a wp-config.php file
         define( 'ABSPATH', dirname( __FILE__ ) . '/' );
       }
 
-      require_once ABSPATH . 'wp-settings.php';
+      require_once ABSPATH . 'fp-settings.php';
       """
 
-    When I run `wp config list --fields=name`
+    When I run `fp config list --fields=name`
     Then STDOUT should be a table containing rows:
       | name                 |
       | table_prefix         |
@@ -387,7 +387,7 @@ Feature: List the values of a wp-config.php file
       | SECURE_AUTH_SALT     |
       | LOGGED_IN_SALT       |
       | NONCE_SALT           |
-      | WP_ALLOW_MULTISITE   |
+      | FP_ALLOW_MULTISITE   |
       | MULTISITE            |
       | SUBDOMAIN_INSTALL    |
       | DOMAIN_CURRENT_SITE  |
@@ -395,11 +395,11 @@ Feature: List the values of a wp-config.php file
       | SITE_ID_CURRENT_SITE |
       | BLOG_ID_CURRENT_SITE |
 
-    When I run `wp config list --format=dotenv`
+    When I run `fp config list --format=dotenv`
     Then STDOUT should be:
       """
-      DB_NAME='wp_cli_test'
-      DB_USER='wp_cli_test'
+      DB_NAME='fp_cli_test'
+      DB_USER='fp_cli_test'
       DB_PASSWORD='password1'
       DB_HOST='127.0.0.1:33068'
       DB_CHARSET='utf8'
@@ -412,7 +412,7 @@ Feature: List the values of a wp-config.php file
       SECURE_AUTH_SALT='VNH|C>w-z?*dtP4ofy!v%RumM.}ug]mx7$QZW|C-R4T`d-~x|xvL{Xc_5C89K(,^'
       LOGGED_IN_SALT='Iwtez|Q`M l7lup; x&ml8^C|Lk&X[3/-l!$`P3GM$7:WI&X$Hn)unjZ9u~g4m[c'
       NONCE_SALT='QxcY|80 $f_dRkn*Liu|Ak*aas41g(q5X_h+m8Z$)tf6#TZ+Q,D#%n]g -{=mj1)'
-      WP_ALLOW_MULTISITE=1
+      FP_ALLOW_MULTISITE=1
       MULTISITE=1
       SUBDOMAIN_INSTALL=''
       DOMAIN_CURRENT_SITE='example.com'
