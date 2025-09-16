@@ -1,34 +1,34 @@
 Feature: Backwards compatibility
 
-  Scenario: fp config get --constant=<constant> --> fp config get <name> --type=constant
-    Given a FP install
+  Scenario: fin config get --constant=<constant> --> fin config get <name> --type=constant
+    Given a FIN install
 
-    When I run `fp config get --constant=DB_NAME`
+    When I run `fin config get --constant=DB_NAME`
     Then STDOUT should be:
       """
-      fp_cli_test
+      fin_cli_test
       """
 
-  Scenario: fp config get --global=<global> --> fp config get <name> --type=variable
-    Given a FP install
+  Scenario: fin config get --global=<global> --> fin config get <name> --type=variable
+    Given a FIN install
 
-    When I run `fp config get --global=table_prefix`
+    When I run `fin config get --global=table_prefix`
     Then STDOUT should be:
       """
-      fp_
+      fin_
       """
 
-  Scenario: fp config get --> fp config list
+  Scenario: fin config get --> fin config list
     Given an empty directory
-    And FP files
+    And FIN files
 
-    When I run `fp config create {CORE_CONFIG_SETTINGS} --skip-check`
+    When I run `fin config create {CORE_CONFIG_SETTINGS} --skip-check`
     Then STDOUT should contain:
       """
-      Generated 'fp-config.php' file.
+      Generated 'fin-config.php' file.
       """
 
-    When I run `fp config get --fields=name,type`
+    When I run `fin config get --fields=name,type`
     Then STDOUT should be a table containing rows:
       | name               | type     |
       | DB_NAME            | constant |
@@ -36,6 +36,6 @@ Feature: Backwards compatibility
       | DB_PASSWORD        | constant |
       | DB_HOST            | constant |
 
-    When I try `fp config get`
+    When I try `fin config get`
     Then STDOUT should be a table containing rows:
       | name | value | type |

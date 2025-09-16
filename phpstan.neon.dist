@@ -4,14 +4,14 @@ parameters:
     - src
     - config-command.php
   scanDirectories:
-    - vendor/fp-cli/fp-cli/php
+    - vendor/fin-cli/fin-cli/php
   scanFiles:
     - vendor/php-stubs/finpress-stubs/finpress-stubs.php
   treatPhpDocTypesAsCertain: false
   dynamicConstantNames:
-  	- FP_DEBUG
-  	- FP_DEBUG_LOG
-  	- FP_DEBUG_DISPLAY
+  	- FIN_DEBUG
+  	- FIN_DEBUG_LOG
+  	- FIN_DEBUG_DISPLAY
   ignoreErrors:
     - identifier: missingType.iterableValue
     - identifier: missingType.parameter

@@ -1,67 +1,67 @@
 <?php
 
-use FP_CLI\ExitException;
-use FP_CLI\Utils;
-use FP_CLI\WpOrgApi;
+use FIN_CLI\ExitException;
+use FIN_CLI\Utils;
+use FIN_CLI\WpOrgApi;
 
 /**
- * Generates and reads the fp-config.php file.
+ * Generates and reads the fin-config.php file.
  *
  * ## EXAMPLES
  *
- *     # Create standard fp-config.php file.
- *     $ fp config create --dbname=testing --dbuser=fp --dbpass=securepswd --locale=ro_RO
- *     Success: Generated 'fp-config.php' file.
+ *     # Create standard fin-config.php file.
+ *     $ fin config create --dbname=testing --dbuser=fin --dbpass=securepswd --locale=ro_RO
+ *     Success: Generated 'fin-config.php' file.
  *
- *     # List constants and variables defined in fp-config.php file.
- *     $ fp config list
+ *     # List constants and variables defined in fin-config.php file.
+ *     $ fin config list
  *     +------------------+------------------------------------------------------------------+----------+
  *     | key              | value                                                            | type     |
  *     +------------------+------------------------------------------------------------------+----------+
- *     | table_prefix     | fp_                                                              | variable |
- *     | DB_NAME          | fp_cli_test                                                      | constant |
+ *     | table_prefix     | fin_                                                              | variable |
+ *     | DB_NAME          | fin_cli_test                                                      | constant |
  *     | DB_USER          | root                                                             | constant |
  *     | DB_PASSWORD      | root                                                             | constant |
  *     | AUTH_KEY         | r6+@shP1yO&$)1gdu.hl[/j;7Zrvmt~o;#WxSsa0mlQOi24j2cR,7i+QM/#7S:o^ | constant |
  *     | SECURE_AUTH_KEY  | iO-z!_m--YH$Tx2tf/&V,YW*13Z_HiRLqi)d?$o-tMdY+82pK$`T.NYW~iTLW;xp | constant |
  *     +------------------+------------------------------------------------------------------+----------+
  *
- *     # Get fp-config.php file path.
- *     $ fp config path
- *     /home/person/htdocs/project/fp-config.php
+ *     # Get fin-config.php file path.
+ *     $ fin config path
+ *     /home/person/htdocs/project/fin-config.php
  *
- *     # Get the table_prefix as defined in fp-config.php file.
- *     $ fp config get table_prefix
- *     fp_
+ *     # Get the table_prefix as defined in fin-config.php file.
+ *     $ fin config get table_prefix
+ *     fin_
  *
- *     # Set the FP_DEBUG constant to true.
- *     $ fp config set FP_DEBUG true --raw
- *     Success: Updated the constant 'FP_DEBUG' in the 'fp-config.php' file with the raw value 'true'.
+ *     # Set the FIN_DEBUG constant to true.
+ *     $ fin config set FIN_DEBUG true --raw
+ *     Success: Updated the constant 'FIN_DEBUG' in the 'fin-config.php' file with the raw value 'true'.
  *
- *     # Delete the COOKIE_DOMAIN constant from the fp-config.php file.
- *     $ fp config delete COOKIE_DOMAIN
- *     Success: Deleted the constant 'COOKIE_DOMAIN' from the 'fp-config.php' file.
+ *     # Delete the COOKIE_DOMAIN constant from the fin-config.php file.
+ *     $ fin config delete COOKIE_DOMAIN
+ *     Success: Deleted the constant 'COOKIE_DOMAIN' from the 'fin-config.php' file.
  *
- *     # Launch system editor to edit fp-config.php file.
- *     $ fp config edit
+ *     # Launch system editor to edit fin-config.php file.
+ *     $ fin config edit
  *
- *     # Check whether the DB_PASSWORD constant exists in the fp-config.php file.
- *     $ fp config has DB_PASSWORD
+ *     # Check whether the DB_PASSWORD constant exists in the fin-config.php file.
+ *     $ fin config has DB_PASSWORD
  *     $ echo $?
  *     0
  *
  *     # Assert if MULTISITE is true.
- *     $ fp config is-true MULTISITE
+ *     $ fin config is-true MULTISITE
  *     $ echo $?
  *     0
  *
- *     # Get new salts for your fp-config.php file.
- *     $ fp config shuffle-salts
+ *     # Get new salts for your fin-config.php file.
+ *     $ fin config shuffle-salts
  *     Success: Shuffled the salt keys.
  *
- * @package fp-cli
+ * @package fin-cli
  */
-class Config_Command extends FP_CLI_Command {
+class Config_Command extends FIN_CLI_Command {
 
 	/**
 	 * List of characters that are valid for a key name.
@@ -92,21 +92,21 @@ class Config_Command extends FP_CLI_Command {
 	 * @return string Initial locale if present, or an empty string if not.
 	 */
 	private static function get_initial_locale() {
-		global $fp_local_package;
+		global $fin_local_package;
 
-		include ABSPATH . '/fp-includes/version.php';
+		include ABSPATH . '/fin-includes/version.php';
 
-		if ( ! empty( $fp_local_package ) ) {
-			return $fp_local_package;
+		if ( ! empty( $fin_local_package ) ) {
+			return $fin_local_package;
 		}
 
 		return '';
 	}
 
 	/**
-	 * Generates a fp-config.php file.
+	 * Generates a fin-config.php file.
 	 *
-	 * Creates a new fp-config.php with database constants, and verifies that
+	 * Creates a new fin-config.php with database constants, and verifies that
 	 * the database constants are correct.
 	 *
 	 * ## OPTIONS
@@ -129,7 +129,7 @@ class Config_Command extends FP_CLI_Command {
 	 * [--dbprefix=<dbprefix>]
 	 * : Set the database table prefix.
 	 * ---
-	 * default: fp_
+	 * default: fin_
 	 * ---
 	 *
 	 * [--dbcharset=<dbcharset>]
@@ -145,10 +145,10 @@ class Config_Command extends FP_CLI_Command {
 	 * ---
 	 *
 	 * [--locale=<locale>]
-	 * : Set the FPLANG constant. Defaults to $fp_local_package variable.
+	 * : Set the FINLANG constant. Defaults to $fin_local_package variable.
 	 *
 	 * [--extra-php]
-	 * : If set, the command copies additional PHP code into fp-config.php from STDIN.
+	 * : If set, the command copies additional PHP code into fin-config.php from STDIN.
 	 *
 	 * [--skip-salts]
 	 * : If set, keys and salts won't be generated, but should instead be passed via `--extra-php`.
@@ -161,7 +161,7 @@ class Config_Command extends FP_CLI_Command {
 	 *
 	 * [--config-file=<path>]
 	 * : Specify the file path to the config file to be created. Defaults to the root of the
-	 * FinPress installation and the filename "fp-config.php".
+	 * FinPress installation and the filename "fin-config.php".
 	 *
 	 * [--insecure]
 	 * : Retry API download without certificate validation if TLS handshake fails. Note: This makes the request vulnerable to a MITM attack.
@@ -171,57 +171,57 @@ class Config_Command extends FP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Standard fp-config.php file
-	 *     $ fp config create --dbname=testing --dbuser=fp --dbpass=securepswd --locale=ro_RO
-	 *     Success: Generated 'fp-config.php' file.
+	 *     # Standard fin-config.php file
+	 *     $ fin config create --dbname=testing --dbuser=fin --dbpass=securepswd --locale=ro_RO
+	 *     Success: Generated 'fin-config.php' file.
 	 *
-	 *     # Enable FP_DEBUG and FP_DEBUG_LOG
-	 *     $ fp config create --dbname=testing --dbuser=fp --dbpass=securepswd --extra-php <<PHP
-	 *     define( 'FP_DEBUG', true );
-	 *     define( 'FP_DEBUG_LOG', true );
+	 *     # Enable FIN_DEBUG and FIN_DEBUG_LOG
+	 *     $ fin config create --dbname=testing --dbuser=fin --dbpass=securepswd --extra-php <<PHP
+	 *     define( 'FIN_DEBUG', true );
+	 *     define( 'FIN_DEBUG_LOG', true );
 	 *     PHP
-	 *     Success: Generated 'fp-config.php' file.
+	 *     Success: Generated 'fin-config.php' file.
 	 *
 	 *     # Avoid disclosing password to bash history by reading from password.txt
 	 *     # Using --prompt=dbpass will prompt for the 'dbpass' argument
-	 *     $ fp config create --dbname=testing --dbuser=fp --prompt=dbpass < password.txt
-	 *     Success: Generated 'fp-config.php' file.
+	 *     $ fin config create --dbname=testing --dbuser=fin --prompt=dbpass < password.txt
+	 *     Success: Generated 'fin-config.php' file.
 	 */
 	public function create( $_, $assoc_args ) {
 		if ( ! Utils\get_flag_value( $assoc_args, 'force' ) ) {
 			if ( isset( $assoc_args['config-file'] ) && file_exists( $assoc_args['config-file'] ) ) {
 				$this->config_file_already_exist_error( basename( $assoc_args['config-file'] ) );
-			} elseif ( ! isset( $assoc_args['config-file'] ) && Utils\locate_fp_config() ) {
-				$this->config_file_already_exist_error( 'fp-config.php' );
+			} elseif ( ! isset( $assoc_args['config-file'] ) && Utils\locate_fin_config() ) {
+				$this->config_file_already_exist_error( 'fin-config.php' );
 			}
 		}
 
 		$defaults   = [
 			'dbhost'      => 'localhost',
 			'dbpass'      => '',
-			'dbprefix'    => 'fp_',
+			'dbprefix'    => 'fin_',
 			'dbcharset'   => 'utf8',
 			'dbcollate'   => '',
 			'locale'      => self::get_initial_locale(),
-			'config-file' => rtrim( ABSPATH, '/\\' ) . '/fp-config.php',
+			'config-file' => rtrim( ABSPATH, '/\\' ) . '/fin-config.php',
 			'ssl'         => false,
 		];
 		$assoc_args = array_merge( $defaults, $assoc_args );
 		if ( empty( $assoc_args['dbprefix'] ) ) {
-			FP_CLI::error( '--dbprefix cannot be empty' );
+			FIN_CLI::error( '--dbprefix cannot be empty' );
 		}
 		if ( preg_match( '|[^a-z0-9_]|i', $assoc_args['dbprefix'] ) ) {
-			FP_CLI::error( '--dbprefix can only contain numbers, letters, and underscores.' );
+			FIN_CLI::error( '--dbprefix can only contain numbers, letters, and underscores.' );
 		}
 
 		// Check DB connection. To make command more portable, we are not using MySQL CLI and using
-		// mysqli directly instead, as $fpdb is not accessible in this context.
+		// mysqli directly instead, as $findb is not accessible in this context.
 		if ( ! Utils\get_flag_value( $assoc_args, 'skip-check' ) ) {
 			// phpcs:disable FinPress.DB.RestrictedFunctions
 			$mysql = mysqli_init();
 
 			if ( ! $mysql ) {
-				FP_CLI::error( 'Database connection error. Could not initialize MySQLi.' );
+				FIN_CLI::error( 'Database connection error. Could not initialize MySQLi.' );
 			}
 
 			mysqli_report( MYSQLI_REPORT_STRICT );
@@ -249,7 +249,7 @@ class Config_Command extends FP_CLI_Command {
 					mysqli_real_connect( $mysql, $host, $assoc_args['dbuser'], $assoc_args['dbpass'], null, null, null, $flags );
 				}
 			} catch ( mysqli_sql_exception $exception ) {
-				FP_CLI::error( 'Database connection error (' . $exception->getCode() . ') ' . $exception->getMessage() );
+				FIN_CLI::error( 'Database connection error (' . $exception->getCode() . ') ' . $exception->getMessage() );
 			}
 			// phpcs:enable FinPress.DB.RestrictedFunctions
 		}
@@ -265,7 +265,7 @@ class Config_Command extends FP_CLI_Command {
 				$assoc_args['secure-auth-salt']  = self::unique_key();
 				$assoc_args['logged-in-salt']    = self::unique_key();
 				$assoc_args['nonce-salt']        = self::unique_key();
-				$assoc_args['fp-cache-key-salt'] = self::unique_key();
+				$assoc_args['fin-cache-key-salt'] = self::unique_key();
 			} catch ( Exception $e ) {
 				$assoc_args['keys-and-salts']     = false;
 				$assoc_args['keys-and-salts-alt'] = self::fetch_remote_salts(
@@ -285,75 +285,75 @@ class Config_Command extends FP_CLI_Command {
 		}
 
 		$command_root = Utils\phar_safe_path( dirname( __DIR__ ) );
-		$out          = Utils\mustache_render( "{$command_root}/templates/fp-config.mustache", $assoc_args );
+		$out          = Utils\mustache_render( "{$command_root}/templates/fin-config.mustache", $assoc_args );
 
-		$fp_config_file_name = basename( $assoc_args['config-file'] );
+		$fin_config_file_name = basename( $assoc_args['config-file'] );
 		$bytes_written       = file_put_contents( $assoc_args['config-file'], $out );
 		if ( ! $bytes_written ) {
-			FP_CLI::error( "Could not create new '{$fp_config_file_name}' file." );
+			FIN_CLI::error( "Could not create new '{$fin_config_file_name}' file." );
 		} else {
-			FP_CLI::success( "Generated '{$fp_config_file_name}' file." );
+			FIN_CLI::success( "Generated '{$fin_config_file_name}' file." );
 		}
 	}
 
 	/**
-	 * Gives error when fp-config already exist and try to create it.
+	 * Gives error when fin-config already exist and try to create it.
 	 *
-	 * @param string $fp_config_file_name Config file name.
+	 * @param string $fin_config_file_name Config file name.
 	 * @return void
 	 */
-	private function config_file_already_exist_error( $fp_config_file_name ) {
-		FP_CLI::error( "The '{$fp_config_file_name}' file already exists." );
+	private function config_file_already_exist_error( $fin_config_file_name ) {
+		FIN_CLI::error( "The '{$fin_config_file_name}' file already exists." );
 	}
 
 	/**
-	 * Launches system editor to edit the fp-config.php file.
+	 * Launches system editor to edit the fin-config.php file.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--config-file=<path>]
 	 * : Specify the file path to the config file to be edited. Defaults to the root of the
-	 * FinPress installation and the filename "fp-config.php".
+	 * FinPress installation and the filename "fin-config.php".
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Launch system editor to edit fp-config.php file
-	 *     $ fp config edit
+	 *     # Launch system editor to edit fin-config.php file
+	 *     $ fin config edit
 	 *
-	 *     # Edit fp-config.php file in a specific editor
-	 *     $ EDITOR=vim fp config edit
+	 *     # Edit fin-config.php file in a specific editor
+	 *     $ EDITOR=vim fin config edit
 	 *
-	 * @when before_fp_load
+	 * @when before_fin_load
 	 */
 	public function edit( $_, $assoc_args ) {
 		$path                = $this->get_config_path( $assoc_args );
-		$fp_config_file_name = basename( $path );
+		$fin_config_file_name = basename( $path );
 		$contents            = (string) file_get_contents( $path );
-		$r                   = Utils\launch_editor_for_input( $contents, $fp_config_file_name, 'php' );
+		$r                   = Utils\launch_editor_for_input( $contents, $fin_config_file_name, 'php' );
 		if ( false === $r ) {
-			FP_CLI::warning( "No changes made to {$fp_config_file_name}, aborted." );
+			FIN_CLI::warning( "No changes made to {$fin_config_file_name}, aborted." );
 		} else {
 			file_put_contents( $path, $r );
 		}
 	}
 
 	/**
-	 * Gets the path to fp-config.php file.
+	 * Gets the path to fin-config.php file.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Get fp-config.php file path
-	 *     $ fp config path
-	 *     /home/person/htdocs/project/fp-config.php
+	 *     # Get fin-config.php file path
+	 *     $ fin config path
+	 *     /home/person/htdocs/project/fin-config.php
 	 *
-	 * @when before_fp_load
+	 * @when before_fin_load
 	 */
 	public function path() {
-		FP_CLI::line( $this->get_config_path( array() ) );
+		FIN_CLI::line( $this->get_config_path( array() ) );
 	}
 
 	/**
-	 * Lists variables, constants, and file includes defined in fp-config.php file.
+	 * Lists variables, constants, and file includes defined in fin-config.php file.
 	 *
 	 * ## OPTIONS
 	 *
@@ -381,25 +381,25 @@ class Config_Command extends FP_CLI_Command {
 	 *
 	 * [--config-file=<path>]
 	 * : Specify the file path to the config file to be read. Defaults to the root of the
-	 * FinPress installation and the filename "fp-config.php".
+	 * FinPress installation and the filename "fin-config.php".
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # List constants and variables defined in fp-config.php file.
-	 *     $ fp config list
+	 *     # List constants and variables defined in fin-config.php file.
+	 *     $ fin config list
 	 *     +------------------+------------------------------------------------------------------+----------+
 	 *     | key              | value                                                            | type     |
 	 *     +------------------+------------------------------------------------------------------+----------+
-	 *     | table_prefix     | fp_                                                              | variable |
-	 *     | DB_NAME          | fp_cli_test                                                      | constant |
+	 *     | table_prefix     | fin_                                                              | variable |
+	 *     | DB_NAME          | fin_cli_test                                                      | constant |
 	 *     | DB_USER          | root                                                             | constant |
 	 *     | DB_PASSWORD      | root                                                             | constant |
 	 *     | AUTH_KEY         | r6+@shP1yO&$)1gdu.hl[/j;7Zrvmt~o;#WxSsa0mlQOi24j2cR,7i+QM/#7S:o^ | constant |
 	 *     | SECURE_AUTH_KEY  | iO-z!_m--YH$Tx2tf/&V,YW*13Z_HiRLqi)d?$o-tMdY+82pK$`T.NYW~iTLW;xp | constant |
 	 *     +------------------+------------------------------------------------------------------+----------+
 	 *
-	 *     # List only database user and password from fp-config.php file.
-	 *     $ fp config list DB_USER DB_PASSWORD --strict
+	 *     # List only database user and password from fin-config.php file.
+	 *     $ fin config list DB_USER DB_PASSWORD --strict
 	 *     +------------------+-------+----------+
 	 *     | key              | value | type     |
 	 *     +------------------+-------+----------+
@@ -407,8 +407,8 @@ class Config_Command extends FP_CLI_Command {
 	 *     | DB_PASSWORD      | root  | constant |
 	 *     +------------------+-------+----------+
 	 *
-	 *     # List all salts from fp-config.php file.
-	 *     $ fp config list _SALT
+	 *     # List all salts from fin-config.php file.
+	 *     $ fin config list _SALT
 	 *     +------------------+------------------------------------------------------------------+----------+
 	 *     | key              | value                                                            | type     |
 	 *     +------------------+------------------------------------------------------------------+----------+
@@ -418,15 +418,15 @@ class Config_Command extends FP_CLI_Command {
 	 *     | NONCE_SALT       | _x+F li|QL?0OSQns1_JZ{|Ix3Jleox-71km/gifnyz8kmo=w-;@AE8W,(fP<N}2 | constant |
 	 *     +------------------+------------------------------------------------------------------+----------+
 	 *
-	 * @when before_fp_load
+	 * @when before_fin_load
 	 * @subcommand list
 	 */
 	public function list_( $args, $assoc_args ) {
 		$path                = $this->get_config_path( $assoc_args );
-		$fp_config_file_name = basename( $path );
+		$fin_config_file_name = basename( $path );
 		$strict              = (bool) Utils\get_flag_value( $assoc_args, 'strict' );
 		if ( $strict && empty( $args ) ) {
-			FP_CLI::error( 'The --strict option can only be used in combination with a filter.' );
+			FIN_CLI::error( 'The --strict option can only be used in combination with a filter.' );
 		}
 
 		$default_fields = [
@@ -442,14 +442,14 @@ class Config_Command extends FP_CLI_Command {
 
 		$assoc_args = array_merge( $defaults, $assoc_args );
 
-		$values = self::get_fp_config_vars( $path );
+		$values = self::get_fin_config_vars( $path );
 
 		if ( ! empty( $args ) ) {
 			$values = $this->filter_values( $values, $args, $strict );
 		}
 
 		if ( empty( $values ) ) {
-			FP_CLI::error( "No matching entries found in '{$fp_config_file_name}'." );
+			FIN_CLI::error( "No matching entries found in '{$fin_config_file_name}'." );
 		}
 
 		if ( 'dotenv' === $assoc_args['format'] ) {
@@ -460,12 +460,12 @@ class Config_Command extends FP_CLI_Command {
 	}
 
 	/**
-	 * Gets the value of a specific constant or variable defined in fp-config.php file.
+	 * Gets the value of a specific constant or variable defined in fin-config.php file.
 	 *
 	 * ## OPTIONS
 	 *
 	 * <name>
-	 * : Name of the fp-config.php constant or variable.
+	 * : Name of the fin-config.php constant or variable.
 	 *
 	 * [--type=<type>]
 	 * : Type of config value to retrieve. Defaults to 'all'.
@@ -491,19 +491,19 @@ class Config_Command extends FP_CLI_Command {
 	 *
 	 * [--config-file=<path>]
 	 * : Specify the file path to the config file to be read. Defaults to the root of the
-	 * FinPress installation and the filename "fp-config.php".
+	 * FinPress installation and the filename "fin-config.php".
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Get the table_prefix as defined in fp-config.php file.
-	 *     $ fp config get table_prefix
-	 *     fp_
+	 *     # Get the table_prefix as defined in fin-config.php file.
+	 *     $ fin config get table_prefix
+	 *     fin_
 	 *
-	 * @when before_fp_load
+	 * @when before_fin_load
 	 */
 	public function get( $args, $assoc_args ) {
 		$value = $this->get_value( $assoc_args, $args );
-		FP_CLI::print_value( $value, $assoc_args );
+		FIN_CLI::print_value( $value, $assoc_args );
 	}
 
 	/**
@@ -514,7 +514,7 @@ class Config_Command extends FP_CLI_Command {
 	 * ## OPTIONS
 	 *
 	 * <name>
-	 * : Name of the fp-config.php constant or variable.
+	 * : Name of the fin-config.php constant or variable.
 	 *
 	 * [--type=<type>]
 	 * : Type of config value to retrieve. Defaults to 'all'.
@@ -528,91 +528,91 @@ class Config_Command extends FP_CLI_Command {
 	 *
 	 * [--config-file=<path>]
 	 * : Specify the file path to the config file to be read. Defaults to the root of the
-	 * FinPress installation and the filename "fp-config.php".
+	 * FinPress installation and the filename "fin-config.php".
 	 *
 	 * ## EXAMPLES
 	 *
 	 *     # Assert if MULTISITE is true
-	 *     $ fp config is-true MULTISITE
+	 *     $ fin config is-true MULTISITE
 	 *     $ echo $?
 	 *     0
 	 *
 	 * @subcommand is-true
-	 * @when before_fp_load
+	 * @when before_fin_load
 	 */
 	public function is_true( $args, $assoc_args ) {
 		$value = $this->get_value( $assoc_args, $args );
 
 		if ( boolval( $value ) ) {
-			FP_CLI::halt( 0 );
+			FIN_CLI::halt( 0 );
 		}
-		FP_CLI::halt( 1 );
+		FIN_CLI::halt( 1 );
 	}
 
 	/**
-	 * Get the array of fp-config.php constants and variables.
+	 * Get the array of fin-config.php constants and variables.
 	 *
-	 * @param string $fp_config_path Config file path
+	 * @param string $fin_config_path Config file path
 	 *
 	 * @return array
 	 */
-	private static function get_fp_config_vars( $fp_config_path = '' ) {
-		$fp_cli_original_defined_constants = get_defined_constants();
-		$fp_cli_original_defined_vars      = get_defined_vars();
-		$fp_cli_original_includes          = get_included_files();
+	private static function get_fin_config_vars( $fin_config_path = '' ) {
+		$fin_cli_original_defined_constants = get_defined_constants();
+		$fin_cli_original_defined_vars      = get_defined_vars();
+		$fin_cli_original_includes          = get_included_files();
 
-		// Output buffering prevents warnings or notices while parsing fp-config
-		// from printing twice. See https://github.com/fp-cli/fp-cli/issues/4944
+		// Output buffering prevents warnings or notices while parsing fin-config
+		// from printing twice. See https://github.com/fin-cli/fin-cli/issues/4944
 		ob_start();
 		// phpcs:ignore Squiz.PHP.Eval.Discouraged -- Don't have another way.
-		eval( FP_CLI::get_runner()->get_fp_config_code( $fp_config_path ) );
+		eval( FIN_CLI::get_runner()->get_fin_config_code( $fin_config_path ) );
 		ob_end_clean();
 
-		$fp_config_vars      = self::get_fp_config_diff( get_defined_vars(), $fp_cli_original_defined_vars, 'variable', [ 'fp_cli_original_defined_vars' ] );
-		$fp_config_constants = self::get_fp_config_diff( get_defined_constants(), $fp_cli_original_defined_constants, 'constant' );
+		$fin_config_vars      = self::get_fin_config_diff( get_defined_vars(), $fin_cli_original_defined_vars, 'variable', [ 'fin_cli_original_defined_vars' ] );
+		$fin_config_constants = self::get_fin_config_diff( get_defined_constants(), $fin_cli_original_defined_constants, 'constant' );
 
-		foreach ( $fp_config_vars as $name => $value ) {
-			if ( 'fp_cli_original_includes' === $value['name'] ) {
+		foreach ( $fin_config_vars as $name => $value ) {
+			if ( 'fin_cli_original_includes' === $value['name'] ) {
 				$name_backup = $name;
 				break;
 			}
 		}
 
 		if ( isset( $name_backup ) ) {
-			unset( $fp_config_vars[ $name_backup ] );
+			unset( $fin_config_vars[ $name_backup ] );
 		}
-		$fp_config_vars           = array_values( $fp_config_vars );
-		$fp_config_includes       = array_diff( get_included_files(), $fp_cli_original_includes );
-		$fp_config_includes_array = [];
+		$fin_config_vars           = array_values( $fin_config_vars );
+		$fin_config_includes       = array_diff( get_included_files(), $fin_cli_original_includes );
+		$fin_config_includes_array = [];
 
-		foreach ( $fp_config_includes as $name => $value ) {
-			$fp_config_includes_array[] = [
+		foreach ( $fin_config_includes as $name => $value ) {
+			$fin_config_includes_array[] = [
 				'name'  => basename( $value ),
 				'value' => $value,
 				'type'  => 'includes',
 			];
 		}
 
-		return array_merge( $fp_config_vars, $fp_config_constants, $fp_config_includes_array );
+		return array_merge( $fin_config_vars, $fin_config_constants, $fin_config_includes_array );
 	}
 
 	/**
-	 * Sets the value of a specific constant or variable defined in fp-config.php file.
+	 * Sets the value of a specific constant or variable defined in fin-config.php file.
 	 *
 	 * ## OPTIONS
 	 *
 	 * <name>
-	 * : Name of the fp-config.php constant or variable.
+	 * : Name of the fin-config.php constant or variable.
 	 *
 	 * <value>
-	 * : Value to set the fp-config.php constant or variable to.
+	 * : Value to set the fin-config.php constant or variable to.
 	 *
 	 * [--add]
 	 * : Add the value if it doesn't exist yet.
 	 * This is the default behavior, override with --no-add.
 	 *
 	 * [--raw]
-	 * : Place the value into the fp-config.php file as is, instead of as a quoted string.
+	 * : Place the value into the fin-config.php file as is, instead of as a quoted string.
 	 *
 	 * [--anchor=<anchor>]
 	 * : Anchor string where additions of new values are anchored around.
@@ -645,19 +645,19 @@ class Config_Command extends FP_CLI_Command {
 	 *
 	 * [--config-file=<path>]
 	 * : Specify the file path to the config file to be modified. Defaults to the root of the
-	 * FinPress installation and the filename "fp-config.php".
+	 * FinPress installation and the filename "fin-config.php".
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Set the FP_DEBUG constant to true.
-	 *     $ fp config set FP_DEBUG true --raw
-	 *     Success: Updated the constant 'FP_DEBUG' in the 'fp-config.php' file with the raw value 'true'.
+	 *     # Set the FIN_DEBUG constant to true.
+	 *     $ fin config set FIN_DEBUG true --raw
+	 *     Success: Updated the constant 'FIN_DEBUG' in the 'fin-config.php' file with the raw value 'true'.
 	 *
-	 * @when before_fp_load
+	 * @when before_fin_load
 	 */
 	public function set( $args, $assoc_args ) {
 		$path                 = $this->get_config_path( $assoc_args );
-		$fp_config_file_name  = basename( $path );
+		$fin_config_file_name  = basename( $path );
 		list( $name, $value ) = $args;
 
 		/**
@@ -693,19 +693,19 @@ class Config_Command extends FP_CLI_Command {
 
 		$adding = false;
 		try {
-			$config_transformer = new FPConfigTransformer( $path );
+			$config_transformer = new FINConfigTransformer( $path );
 
 			switch ( $type ) {
 				case 'all':
 					$has_constant = $config_transformer->exists( 'constant', $name );
 					$has_variable = $config_transformer->exists( 'variable', $name );
 					if ( $has_constant && $has_variable ) {
-						FP_CLI::error( "Found both a constant and a variable '{$name}' in the '{$fp_config_file_name}' file. Use --type=<type> to disambiguate." );
+						FIN_CLI::error( "Found both a constant and a variable '{$name}' in the '{$fin_config_file_name}' file. Use --type=<type> to disambiguate." );
 					}
 					if ( ! $has_constant && ! $has_variable ) {
 						if ( ! $options['add'] ) {
-							$message = "The constant or variable '{$name}' is not defined in the '{$fp_config_file_name}' file.";
-							FP_CLI::error( $message );
+							$message = "The constant or variable '{$name}' is not defined in the '{$fin_config_file_name}' file.";
+							FIN_CLI::error( $message );
 						}
 						$type   = 'constant';
 						$adding = true;
@@ -717,7 +717,7 @@ class Config_Command extends FP_CLI_Command {
 				case 'variable':
 					if ( ! $config_transformer->exists( $type, $name ) ) {
 						if ( ! $options['add'] ) {
-							FP_CLI::error( "The {$type} '{$name}' is not defined in the '{$fp_config_file_name}' file." );
+							FIN_CLI::error( "The {$type} '{$name}' is not defined in the '{$fin_config_file_name}' file." );
 						}
 						$adding = true;
 					}
@@ -726,26 +726,26 @@ class Config_Command extends FP_CLI_Command {
 			$config_transformer->update( $type, $name, $value, $options );
 
 		} catch ( Exception $exception ) {
-			FP_CLI::error( "Could not process the '{$fp_config_file_name}' transformation.\nReason: {$exception->getMessage()}" );
+			FIN_CLI::error( "Could not process the '{$fin_config_file_name}' transformation.\nReason: {$exception->getMessage()}" );
 		}
 
 		$raw = $options['raw'] ? 'raw ' : '';
 		if ( $adding ) {
-			$message = "Added the {$type} '{$name}' to the '{$fp_config_file_name}' file with the {$raw}value '{$value}'.";
+			$message = "Added the {$type} '{$name}' to the '{$fin_config_file_name}' file with the {$raw}value '{$value}'.";
 		} else {
-			$message = "Updated the {$type} '{$name}' in the '{$fp_config_file_name}' file with the {$raw}value '{$value}'.";
+			$message = "Updated the {$type} '{$name}' in the '{$fin_config_file_name}' file with the {$raw}value '{$value}'.";
 		}
 
-		FP_CLI::success( $message );
+		FIN_CLI::success( $message );
 	}
 
 	/**
-	 * Deletes a specific constant or variable from the fp-config.php file.
+	 * Deletes a specific constant or variable from the fin-config.php file.
 	 *
 	 * ## OPTIONS
 	 *
 	 * <name>
-	 * : Name of the fp-config.php constant or variable.
+	 * : Name of the fin-config.php constant or variable.
 	 *
 	 * [--type=<type>]
 	 * : Type of the config value to delete. Defaults to 'all'.
@@ -759,19 +759,19 @@ class Config_Command extends FP_CLI_Command {
 	 *
 	 * [--config-file=<path>]
 	 * : Specify the file path to the config file to be modified. Defaults to the root of the
-	 * FinPress installation and the filename "fp-config.php".
+	 * FinPress installation and the filename "fin-config.php".
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Delete the COOKIE_DOMAIN constant from the fp-config.php file.
-	 *     $ fp config delete COOKIE_DOMAIN
-	 *     Success: Deleted the constant 'COOKIE_DOMAIN' from the 'fp-config.php' file.
+	 *     # Delete the COOKIE_DOMAIN constant from the fin-config.php file.
+	 *     $ fin config delete COOKIE_DOMAIN
+	 *     Success: Deleted the constant 'COOKIE_DOMAIN' from the 'fin-config.php' file.
 	 *
-	 * @when before_fp_load
+	 * @when before_fin_load
 	 */
 	public function delete( $args, $assoc_args ) {
 		$path                = $this->get_config_path( $assoc_args );
-		$fp_config_file_name = basename( $path );
+		$fin_config_file_name = basename( $path );
 		list( $name )        = $args;
 
 		/**
@@ -780,17 +780,17 @@ class Config_Command extends FP_CLI_Command {
 		$type = Utils\get_flag_value( $assoc_args, 'type' );
 
 		try {
-			$config_transformer = new FPConfigTransformer( $path );
+			$config_transformer = new FINConfigTransformer( $path );
 
 			switch ( $type ) {
 				case 'all':
 					$has_constant = $config_transformer->exists( 'constant', $name );
 					$has_variable = $config_transformer->exists( 'variable', $name );
 					if ( $has_constant && $has_variable ) {
-						FP_CLI::error( "Found both a constant and a variable '{$name}' in the '{$fp_config_file_name}' file. Use --type=<type> to disambiguate." );
+						FIN_CLI::error( "Found both a constant and a variable '{$name}' in the '{$fin_config_file_name}' file. Use --type=<type> to disambiguate." );
 					}
 					if ( ! $has_constant && ! $has_variable ) {
-						FP_CLI::error( "The constant or variable '{$name}' is not defined in the '{$fp_config_file_name}' file." );
+						FIN_CLI::error( "The constant or variable '{$name}' is not defined in the '{$fin_config_file_name}' file." );
 					} else {
 						$type = $has_constant ? 'constant' : 'variable';
 					}
@@ -798,26 +798,26 @@ class Config_Command extends FP_CLI_Command {
 				case 'constant':
 				case 'variable':
 					if ( ! $config_transformer->exists( $type, $name ) ) {
-						FP_CLI::error( "The {$type} '{$name}' is not defined in the '{$fp_config_file_name}' file." );
+						FIN_CLI::error( "The {$type} '{$name}' is not defined in the '{$fin_config_file_name}' file." );
 					}
 			}
 
 			$config_transformer->remove( $type, $name );
 
 		} catch ( Exception $exception ) {
-			FP_CLI::error( "Could not process the '{$fp_config_file_name}' transformation.\nReason: {$exception->getMessage()}" );
+			FIN_CLI::error( "Could not process the '{$fin_config_file_name}' transformation.\nReason: {$exception->getMessage()}" );
 		}
 
-		FP_CLI::success( "Deleted the {$type} '{$name}' from the '{$fp_config_file_name}' file." );
+		FIN_CLI::success( "Deleted the {$type} '{$name}' from the '{$fin_config_file_name}' file." );
 	}
 
 	/**
-	 * Checks whether a specific constant or variable exists in the fp-config.php file.
+	 * Checks whether a specific constant or variable exists in the fin-config.php file.
 	 *
 	 * ## OPTIONS
 	 *
 	 * <name>
-	 * : Name of the fp-config.php constant or variable.
+	 * : Name of the fin-config.php constant or variable.
 	 *
 	 * [--type=<type>]
 	 * : Type of the config value to set. Defaults to 'all'.
@@ -831,18 +831,18 @@ class Config_Command extends FP_CLI_Command {
 	 *
 	 * [--config-file=<path>]
 	 * : Specify the file path to the config file to be checked. Defaults to the root of the
-	 * FinPress installation and the filename "fp-config.php".
+	 * FinPress installation and the filename "fin-config.php".
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Check whether the DB_PASSWORD constant exists in the fp-config.php file.
-	 *     $ fp config has DB_PASSWORD
+	 *     # Check whether the DB_PASSWORD constant exists in the fin-config.php file.
+	 *     $ fin config has DB_PASSWORD
 	 *
-	 * @when before_fp_load
+	 * @when before_fin_load
 	 */
 	public function has( $args, $assoc_args ) {
 		$path                = $this->get_config_path( $assoc_args );
-		$fp_config_file_name = basename( $path );
+		$fin_config_file_name = basename( $path );
 		list( $name )        = $args;
 
 		/**
@@ -851,36 +851,36 @@ class Config_Command extends FP_CLI_Command {
 		$type = Utils\get_flag_value( $assoc_args, 'type' );
 
 		try {
-			$config_transformer = new FPConfigTransformer( $path, true );
+			$config_transformer = new FINConfigTransformer( $path, true );
 
 			switch ( $type ) {
 				case 'all':
 					$has_constant = $config_transformer->exists( 'constant', $name );
 					$has_variable = $config_transformer->exists( 'variable', $name );
 					if ( $has_constant && $has_variable ) {
-						FP_CLI::error( "Found both a constant and a variable '{$name}' in the '{$fp_config_file_name}' file. Use --type=<type> to disambiguate." );
+						FIN_CLI::error( "Found both a constant and a variable '{$name}' in the '{$fin_config_file_name}' file. Use --type=<type> to disambiguate." );
 					}
 					if ( ! $has_constant && ! $has_variable ) {
-						FP_CLI::halt( 1 );
+						FIN_CLI::halt( 1 );
 					} else {
-						FP_CLI::halt( 0 );
+						FIN_CLI::halt( 0 );
 					}
 					// @phpstan-ignore deadCode.unreachable
 					break;
 				case 'constant':
 				case 'variable':
 					if ( ! $config_transformer->exists( $type, $name ) ) {
-						FP_CLI::halt( 1 );
+						FIN_CLI::halt( 1 );
 					}
-					FP_CLI::halt( 0 );
+					FIN_CLI::halt( 0 );
 			}
 		} catch ( Exception $exception ) {
-			FP_CLI::error( "Could not process the '{$fp_config_file_name}' transformation.\nReason: {$exception->getMessage()}" );
+			FIN_CLI::error( "Could not process the '{$fin_config_file_name}' transformation.\nReason: {$exception->getMessage()}" );
 		}
 	}
 
 	/**
-	 * Refreshes the salts defined in the fp-config.php file.
+	 * Refreshes the salts defined in the fin-config.php file.
 	 *
 	 * ## OPTIONS
 	 *
@@ -892,23 +892,23 @@ class Config_Command extends FP_CLI_Command {
 	 *
 	 * [--config-file=<path>]
 	 * : Specify the file path to the config file to be modified. Defaults to the root of the
-	 * FinPress installation and the filename "fp-config.php".
+	 * FinPress installation and the filename "fin-config.php".
 	 *
 	 * [--insecure]
 	 * : Retry API download without certificate validation if TLS handshake fails. Note: This makes the request vulnerable to a MITM attack.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Get new salts for your fp-config.php file
-	 *     $ fp config shuffle-salts
+	 *     # Get new salts for your fin-config.php file
+	 *     $ fin config shuffle-salts
 	 *     Success: Shuffled the salt keys.
 	 *
-	 *     # Add a cache key salt to the fp-config.php file
-	 *     $ fp config shuffle-salts FP_CACHE_KEY_SALT --force
+	 *     # Add a cache key salt to the fin-config.php file
+	 *     $ fin config shuffle-salts FIN_CACHE_KEY_SALT --force
 	 *     Success: Shuffled the salt keys.
 	 *
 	 * @subcommand shuffle-salts
-	 * @when before_fp_load
+	 * @when before_fin_load
 	 */
 	public function shuffle_salts( $args, $assoc_args ) {
 		$keys  = $args;
@@ -930,7 +930,7 @@ class Config_Command extends FP_CLI_Command {
 			foreach ( $keys as $key ) {
 				$unique_key = self::unique_key();
 				if ( ! $force && ! in_array( $key, self::DEFAULT_SALT_CONSTANTS, true ) ) {
-					FP_CLI::warning( "Could not shuffle the unknown key '{$key}'." );
+					FIN_CLI::warning( "Could not shuffle the unknown key '{$key}'." );
 					++$skipped;
 					continue;
 				}
@@ -940,9 +940,9 @@ class Config_Command extends FP_CLI_Command {
 			foreach ( $keys as $key ) {
 				if ( ! in_array( $key, self::DEFAULT_SALT_CONSTANTS, true ) ) {
 					if ( $force ) {
-						FP_CLI::warning( "Could not add the key '{$key}' because 'random_int()' is not supported." );
+						FIN_CLI::warning( "Could not add the key '{$key}' because 'random_int()' is not supported." );
 					} else {
-						FP_CLI::warning( "Could not shuffle the unknown key '{$key}'." );
+						FIN_CLI::warning( "Could not shuffle the unknown key '{$key}'." );
 					}
 					++$skipped;
 				}
@@ -963,7 +963,7 @@ class Config_Command extends FP_CLI_Command {
 		$path = $this->get_config_path( $assoc_args );
 
 		try {
-			$config_transformer = new FPConfigTransformer( $path );
+			$config_transformer = new FINConfigTransformer( $path );
 			foreach ( $secret_keys as $key => $value ) {
 				$is_updated = $config_transformer->update( 'constant', $key, (string) $value );
 				if ( $is_updated ) {
@@ -973,19 +973,19 @@ class Config_Command extends FP_CLI_Command {
 				}
 			}
 		} catch ( Exception $exception ) {
-			$fp_config_file_name = basename( $path );
-			FP_CLI::error( "Could not process the '{$fp_config_file_name}' transformation.\nReason: {$exception->getMessage()}" );
+			$fin_config_file_name = basename( $path );
+			FIN_CLI::error( "Could not process the '{$fin_config_file_name}' transformation.\nReason: {$exception->getMessage()}" );
 		}
 
 		if ( $has_keys ) {
 			Utils\report_batch_operation_results( 'salt', 'shuffle', count( $keys ), $successes, $errors, $skipped );
 		} else {
-			FP_CLI::success( 'Shuffled the salt keys.' );
+			FIN_CLI::success( 'Shuffled the salt keys.' );
 		}
 	}
 
 	/**
-	 * Filters fp-config.php file configurations.
+	 * Filters fin-config.php file configurations.
 	 *
 	 * @param array $vars
 	 * @param array $previous_list
@@ -993,7 +993,7 @@ class Config_Command extends FP_CLI_Command {
 	 * @param array $exclude_list
 	 * @return array
 	 */
-	private static function get_fp_config_diff( $vars, $previous_list, $type, $exclude_list = [] ) {
+	private static function get_fin_config_diff( $vars, $previous_list, $type, $exclude_list = [] ) {
 		$result = [];
 		foreach ( $vars as $name => $val ) {
 			if ( array_key_exists( $name, $previous_list ) || in_array( $name, $exclude_list, true ) ) {
@@ -1019,28 +1019,28 @@ class Config_Command extends FP_CLI_Command {
 		try {
 			$salts = (string) ( new WpOrgApi( [ 'insecure' => $insecure ] ) )->get_salts();
 		} catch ( Exception $exception ) {
-			FP_CLI::error( $exception );
+			FIN_CLI::error( $exception );
 		}
 
-		// Adapt whitespace to adhere to FPCS.
+		// Adapt whitespace to adhere to FINCS.
 		$salts = (string) preg_replace( '/define\(\'(.*?)\'\);/', 'define( \'$1\' );', $salts );
 
 		return $salts;
 	}
 
 	/**
-	 * Prints the value of a constant or variable defined in the fp-config.php file.
+	 * Prints the value of a constant or variable defined in the fin-config.php file.
 	 *
-	 * If the constant or variable is not defined in the fp-config file then an error will be returned.
+	 * If the constant or variable is not defined in the fin-config file then an error will be returned.
 	 *
 	 * @param string $name
 	 * @param string $type
 	 * @param string $type
-	 * @param string $fp_config_file_name Config file name
-	 * @return string The value of the requested constant or variable as defined in the fp-config.php file; if the
+	 * @param string $fin_config_file_name Config file name
+	 * @return string The value of the requested constant or variable as defined in the fin-config.php file; if the
 	 *                requested constant or variable is not defined then the function will print an error and exit.
 	 */
-	private function return_value( $name, $type, $values, $fp_config_file_name ) {
+	private function return_value( $name, $type, $values, $fin_config_file_name ) {
 		$results = [];
 		foreach ( $values as $value ) {
 			if ( $name === $value['name'] && ( 'all' === $type || $type === $value['type'] ) ) {
@@ -1049,7 +1049,7 @@ class Config_Command extends FP_CLI_Command {
 		}
 
 		if ( count( $results ) > 1 ) {
-			FP_CLI::error( "Found both a constant and a variable '{$name}' in the '{$fp_config_file_name}' file. Use --type=<type> to disambiguate." );
+			FIN_CLI::error( "Found both a constant and a variable '{$name}' in the '{$fin_config_file_name}' file. Use --type=<type> to disambiguate." );
 		}
 
 		if ( ! empty( $results ) ) {
@@ -1061,14 +1061,14 @@ class Config_Command extends FP_CLI_Command {
 		$candidate = Utils\get_suggestion( $name, $names );
 
 		if ( ! empty( $candidate ) && $candidate !== $name ) {
-			FP_CLI::error( "The {$type} '{$name}' is not defined in the '{$fp_config_file_name}' file.\nDid you mean '{$candidate}'?" );
+			FIN_CLI::error( "The {$type} '{$name}' is not defined in the '{$fin_config_file_name}' file.\nDid you mean '{$candidate}'?" );
 		}
 
-		FP_CLI::error( "The {$type} '{$name}' is not defined in the '{$fp_config_file_name}' file." );
+		FIN_CLI::error( "The {$type} '{$name}' is not defined in the '{$fin_config_file_name}' file." );
 	}
 
 	/**
-	 * Generates a unique key/salt for the fp-config file.
+	 * Generates a unique key/salt for the fin-config file.
 	 *
 	 * @throws Exception
 	 *
@@ -1120,10 +1120,10 @@ class Config_Command extends FP_CLI_Command {
 	}
 
 	/**
-	 * Gets the path to the fp-config.php file or gives a helpful error if none found.
+	 * Gets the path to the fin-config.php file or gives a helpful error if none found.
 	 *
-	 * @param array $assoc_args associative arguments given while calling fp config subcommand
-	 * @return string Path to fp-config.php file.
+	 * @param array $assoc_args associative arguments given while calling fin config subcommand
+	 * @return string Path to fin-config.php file.
 	 */
 	private function get_config_path( $assoc_args ) {
 		if ( isset( $assoc_args['config-file'] ) ) {
@@ -1132,22 +1132,22 @@ class Config_Command extends FP_CLI_Command {
 				$this->config_file_not_found_error( basename( $assoc_args['config-file'] ) );
 			}
 		} else {
-			$path = Utils\locate_fp_config();
+			$path = Utils\locate_fin_config();
 			if ( ! $path ) {
-				$this->config_file_not_found_error( 'fp-config.php' );
+				$this->config_file_not_found_error( 'fin-config.php' );
 			}
 		}
 		return $path;
 	}
 
 	/**
-	 * Gives error the fp-config file not found
+	 * Gives error the fin-config file not found
 	 *
-	 * @param string $fp_config_file_name Config file name.
+	 * @param string $fin_config_file_name Config file name.
 	 * @return void
 	 */
-	private function config_file_not_found_error( $fp_config_file_name ) {
-		FP_CLI::error( "'{$fp_config_file_name}' not found.\nEither create one manually or use `fp config create`." );
+	private function config_file_not_found_error( $fin_config_file_name ) {
+		FIN_CLI::error( "'{$fin_config_file_name}' not found.\nEither create one manually or use `fin config create`." );
 	}
 	/**
 	 * Parses the separator argument, to allow for special character handling.
@@ -1172,7 +1172,7 @@ class Config_Command extends FP_CLI_Command {
 	}
 
 	/**
-	 * Gets the value of a specific constant or variable defined in fp-config.php file.
+	 * Gets the value of a specific constant or variable defined in fin-config.php file.
 	 *
 	 * @param $assoc_args
 	 * @param $args
@@ -1181,7 +1181,7 @@ class Config_Command extends FP_CLI_Command {
 	 */
 	protected function get_value( $assoc_args, $args ) {
 		$path                = $this->get_config_path( $assoc_args );
-		$fp_config_file_name = basename( $path );
+		$fin_config_file_name = basename( $path );
 		list( $name )        = $args;
 
 		/**
@@ -1192,8 +1192,8 @@ class Config_Command extends FP_CLI_Command {
 		$value = $this->return_value(
 			$name,
 			$type,
-			self::get_fp_config_vars( $path ),
-			$fp_config_file_name
+			self::get_fin_config_vars( $path ),
+			$fin_config_file_name
 		);
 
 		return $value;
@@ -1218,7 +1218,7 @@ class Config_Command extends FP_CLI_Command {
 			$variable_value = "'{$variable_value}'";
 		}
 
-		FP_CLI::line( "{$name}={$variable_value}" );
+		FIN_CLI::line( "{$name}={$variable_value}" );
 	}
 
 	/**

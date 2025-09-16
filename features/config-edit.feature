@@ -1,29 +1,29 @@
-Feature: Edit a fp-config file
+Feature: Edit a fin-config file
 
-  Scenario: Edit a fp-config.php file
-    Given a FP install
+  Scenario: Edit a fin-config.php file
+    Given a FIN install
 
-    When I try `EDITOR='ex -i NONE -c q!' fp config edit;`
+    When I try `EDITOR='ex -i NONE -c q!' fin config edit;`
     Then STDERR should contain:
       """
-      Warning: No changes made to fp-config.php, aborted.
+      Warning: No changes made to fin-config.php, aborted.
       """
     And the return code should be 0
 
   @custom-config-file
-  Scenario: Edit a fp-custom-config.php file
+  Scenario: Edit a fin-custom-config.php file
     Given an empty directory
-    And FP files
+    And FIN files
 
-    When I run `fp config create {CORE_CONFIG_SETTINGS} --skip-check --config-file='fp-custom-config.php'`
+    When I run `fin config create {CORE_CONFIG_SETTINGS} --skip-check --config-file='fin-custom-config.php'`
     Then STDOUT should contain:
       """
-      Generated 'fp-custom-config.php' file.
+      Generated 'fin-custom-config.php' file.
       """
 
-    When I try `EDITOR='ex -i NONE -c q!' fp config edit --config-file=fp-custom-config.php`
+    When I try `EDITOR='ex -i NONE -c q!' fin config edit --config-file=fin-custom-config.php`
     Then STDERR should contain:
       """
-      No changes made to fp-custom-config.php, aborted.
+      No changes made to fin-custom-config.php, aborted.
       """
     And the return code should be 0

@@ -2,8 +2,8 @@
 /**
  * The base configuration for FinPress
  *
- * The fp-config.php creation script uses this file during the installation.
- * You don't have to use the web site, you can copy this file to "fp-config.php"
+ * The fin-config.php creation script uses this file during the installation.
+ * You don't have to use the web site, you can copy this file to "fin-config.php"
  * and fill in the values.
  *
  * This file contains the following configurations:
@@ -14,7 +14,7 @@
  * * Localized language
  * * ABSPATH
  *
- * @link https://finpress.org/support/article/editing-fp-config-php/
+ * @link https://finpress.org/support/article/editing-fin-config-php/
  *
  * @package FinPress
  */
@@ -58,7 +58,7 @@ define( 'AUTH_SALT',         '{{auth-salt}}' );
 define( 'SECURE_AUTH_SALT',  '{{secure-auth-salt}}' );
 define( 'LOGGED_IN_SALT',    '{{logged-in-salt}}' );
 define( 'NONCE_SALT',        '{{nonce-salt}}' );
-define( 'FP_CACHE_KEY_SALT', '{{fp-cache-key-salt}}' );
+define( 'FIN_CACHE_KEY_SALT', '{{fin-cache-key-salt}}' );
 {{/keys-and-salts}}
 {{keys-and-salts-alt}}
 
@@ -80,7 +80,7 @@ $table_prefix = '{{dbprefix}}';
  * For developers: FinPress debugging mode.
  *
  * Change this to true to enable the display of notices during development.
- * It is strongly recommended that plugin and theme developers use FP_DEBUG
+ * It is strongly recommended that plugin and theme developers use FIN_DEBUG
  * in their development environments.
  *
  * For information on other constants that can be used for debugging,
@@ -88,8 +88,8 @@ $table_prefix = '{{dbprefix}}';
  *
  * @link https://finpress.org/support/article/debugging-in-finpress/
  */
-if ( ! defined( 'FP_DEBUG' ) ) {
-	define( 'FP_DEBUG', false );
+if ( ! defined( 'FIN_DEBUG' ) ) {
+	define( 'FIN_DEBUG', false );
 }
 
 /* That's all, stop editing! Happy publishing. */
@@ -100,4 +100,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /** Sets up FinPress vars and included files. */
-require_once ABSPATH . 'fp-settings.php';
+require_once ABSPATH . 'fin-settings.php';
